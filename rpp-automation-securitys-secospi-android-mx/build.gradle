@@ -1,0 +1,4 @@
+dependencies {
+       implementation project(":rpp-automation-securitys-secospi-common")
+       implementation project(":rpp-automation-securitys-secospi-android")
+}
