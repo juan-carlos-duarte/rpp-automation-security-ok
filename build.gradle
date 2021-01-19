@@ -1,0 +1,132 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "http://repo.ops.rappi.com/repository/maven2-hosted"
+        credentials {
+            username "$System.env.NEXUS_USERNAME_REPOSITORY"
+            password "$System.env.NEXUS_PASSWORD_REPOSITORY"
+        }
+        authentication {
+            basic(BasicAuthentication)
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.projectlombok:lombok:1.18.12'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'com.rappi.pay.automation:rpp-automation-common:1.0.0'
+    implementation 'org.hamcrest:hamcrest-all:1.3'
+    implementation 'org.testng:testng:7.0.0'
+    implementation 'io.appium:java-client:7.2.0'
+    implementation 'com.rappi.pay.automation.ci-cd:rpp-automation-ci-cd-lib:1.0.7'
+}
+
+allprojects {
+    apply plugin: 'java'
+    group = 'com.rappi.pay.automation'
+    version = '1.0.0'
+    sourceCompatibility = JavaVersion.VERSION_1_8
+
+}
+
+subprojects {
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "http://repo.ops.rappi.com/repository/maven2-hosted"
+            credentials {
+                username "$System.env.NEXUS_USERNAME_REPOSITORY"
+                password "$System.env.NEXUS_PASSWORD_REPOSITORY"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+
+    }
+    dependencies {
+        implementation 'org.projectlombok:lombok:1.18.12'
+        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
+        implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+        implementation 'com.rappi.pay.automation:rpp-automation-common:1.0.0'
+        implementation 'org.hamcrest:hamcrest-all:1.3'
+        implementation 'org.testng:testng:7.0.0'
+        implementation 'io.appium:java-client:7.2.0'
+        implementation 'com.rappi.pay.automation.ci-cd:rpp-automation-ci-cd-lib:1.0.7'
+    }
+
+
+}
+
+subprojects.each { subproject -> evaluationDependsOn(subproject.path) }
+task singleJar(type: Jar, dependsOn: subprojects.build) {
+    subprojects.each { subproject ->
+        from subproject.configurations.archives.allArtifacts.files.collect {
+            zipTree(it)
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact singleJar
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                configurations.implementation.allDependencies.each {
+
+                    if (it.name != 'unspecified') {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+
+        }
+    }
+    repositories {
+        mavenLocal()
+        maven {
+            url "http://repo.ops.rappi.com/repository/maven2-hosted"
+            credentials {
+                username "$System.env.NEXUS_USERNAME_REPOSITORY"
+                password "$System.env.NEXUS_PASSWORD_REPOSITORY"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+        maven {
+            name 's3Bucket'
+            url "$System.env.RAPPIPAY_ARTIFACT_S3_URL"
+            credentials(AwsCredentials) {
+                accessKey "$System.env.RAPPIPAY_ARTIFACT_KEY_ID"
+                secretKey "$System.env.RAPPIPAY_ARTIFACT_SECRET_ID"
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.withType(PublishToMavenRepository) { task ->
+        if (task.publication.hasProperty('repo') && task.publication.repo != task.repository.name) {
+            task.enabled = false
+            task.group = null
+        }
+    }
+}
