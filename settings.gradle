@@ -1,0 +1,16 @@
+rootProject.name = "rpp-automation-securitys-secospi"
+
+include "rpp-automation-securitys-secospi-common"
+
+
+include "rpp-automation-securitys-secospi-android"
+include "rpp-automation-securitys-secospi-ios"
+
+include "rpp-automation-securitys-secospi-android-mx"
+include "rpp-automation-securitys-secospi-ios-mx"
+include "rpp-automation-securitys-secospi-android-pe"
+include "rpp-automation-securitys-secospi-ios-pe"
+
+
+
+include "rpp-automation-ci-cd"
