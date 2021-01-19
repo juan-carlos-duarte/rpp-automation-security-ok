@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+group 'com.rappi.pay.automation'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation project(":rpp-automation-securitys-secospi-common")
+
+
+    implementation project(":rpp-automation-securitys-secospi-android")
+    implementation project(":rpp-automation-securitys-secospi-ios")
+
+    implementation project(":rpp-automation-securitys-secospi-android-mx")
+    implementation project(":rpp-automation-securitys-secospi-ios-mx")
+    implementation project(":rpp-automation-securitys-secospi-android-pe")
+    implementation project(":rpp-automation-securitys-secospi-ios-pe")
+
+
+
+
+
+}
+
+task notifyProject(type: JavaExec) {
+    group = "Execution"
+    description = "Post automation project to Automation K8s API"
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.rappi.pay.automation.gradle.MetadataApplication"
+    args = ["project"]
+}
+
+
+task cleanNexus(type: JavaExec) {
+    group = "Execution"
+    description = "Clean Nexus Artifact"
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.rappi.pay.automation.gradle.MetadataApplication"
+    args = ["nexusRepo"]
+
+}
