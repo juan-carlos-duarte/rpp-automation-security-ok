@@ -1,0 +1,3 @@
+dependencies {
+    implementation 'com.rappi.pay.automation.ci-cd:rpp-automation-ci-cd-lib:1.0.7'
+}
