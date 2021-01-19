@@ -1,0 +1,58 @@
+version: '3'
+services:
+  test:
+    volumes:
+      - .:/code
+    working_dir: /code
+    user: ${MY_USER:-root}
+    image: openjdk:8
+    environment:
+      RAPPIPAY_ARTIFACT_S3_URL: ${RAPPIPAY_ARTIFACT_S3_URL}
+      RAPPIPAY_ARTIFACT_KEY_ID: ${RAPPIPAY_ARTIFACT_KEY_ID}
+      RAPPIPAY_ARTIFACT_SECRET_ID: ${RAPPIPAY_ARTIFACT_SECRET_ID}
+      NEXUS_USERNAME_REPOSITORY: ${NEXUS_USERNAME}
+      NEXUS_PASSWORD_REPOSITORY: ${NEXUS_PASSWORD}
+      NEXUS_URL_REPOSITORY: "${NEXUS_URL}/repository/maven2-hosted"
+    command:  bash -c "./gradlew -g ./.gradle-cache test --info"
+  publishToNexus:
+    volumes:
+      - .:/code
+    working_dir: /code
+    user: ${MY_USER:-root}
+    image: openjdk:8
+    environment:
+      NEXUS_USERNAME_REPOSITORY: ${NEXUS_USERNAME}
+      NEXUS_PASSWORD_REPOSITORY: ${NEXUS_PASSWORD}
+      NEXUS_URL_REPOSITORY: "${NEXUS_URL}/repository/maven2-hosted"
+      RAPPIPAY_ARTIFACT_S3_URL: ${RAPPIPAY_ARTIFACT_S3_URL}
+      RAPPIPAY_ARTIFACT_KEY_ID: ${RAPPIPAY_ARTIFACT_KEY_ID}
+      RAPPIPAY_ARTIFACT_SECRET_ID: ${RAPPIPAY_ARTIFACT_SECRET_ID}
+    command: bash -c "./gradlew -g ./.gradle-cache cleanNexus publishMavenPublicationToMavenRepository --info"
+  publishToS3:
+    volumes:
+      - .:/code
+    working_dir: /code
+    user: ${MY_USER:-root}
+    image: openjdk:8
+    environment:
+      NEXUS_USERNAME_REPOSITORY: ${NEXUS_USERNAME}
+      NEXUS_PASSWORD_REPOSITORY: ${NEXUS_PASSWORD}
+      NEXUS_URL_REPOSITORY: "${NEXUS_URL}/repository/maven2-hosted"
+      RAPPIPAY_ARTIFACT_S3_URL: ${RAPPIPAY_ARTIFACT_S3_URL}
+      RAPPIPAY_ARTIFACT_KEY_ID: ${RAPPIPAY_ARTIFACT_KEY_ID}
+      RAPPIPAY_ARTIFACT_SECRET_ID: ${RAPPIPAY_ARTIFACT_SECRET_ID}
+    command: bash -c "./gradlew -g ./.gradle-cache publishMavenPublicationToS3BucketRepository --info"
+  notifyProject:
+    volumes:
+      - .:/code
+    working_dir: /code
+    user: ${MY_USER:-root}
+    image: openjdk:8
+    environment:
+      NEXUS_USERNAME_REPOSITORY: ${NEXUS_USERNAME}
+      NEXUS_PASSWORD_REPOSITORY: ${NEXUS_PASSWORD}
+      NEXUS_URL_REPOSITORY: "${NEXUS_URL}/repository/maven2-hosted"
+      RAPPIPAY_ARTIFACT_S3_URL: ${RAPPIPAY_ARTIFACT_S3_URL}
+      RAPPIPAY_ARTIFACT_KEY_ID: ${RAPPIPAY_ARTIFACT_KEY_ID}
+      RAPPIPAY_ARTIFACT_SECRET_ID: ${RAPPIPAY_ARTIFACT_SECRET_ID}
+    command:  bash -c "./gradlew -g ./.gradle-cache notifyProject --info"
